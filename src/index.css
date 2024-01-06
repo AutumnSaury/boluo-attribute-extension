@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .icon {
+    height: inherit;
+    width: inherit;
+    color: inherit;
+    display: block;
+    object-fit: contain;
+  }
+}
