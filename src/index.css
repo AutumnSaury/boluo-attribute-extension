@@ -3,11 +3,34 @@
 @tailwind utilities;
 
 @layer components {
-  .icon {
-    height: inherit;
-    width: inherit;
-    color: inherit;
-    display: block;
-    object-fit: contain;
+  .tab-center {
+    @apply w-full;
+
+    th,
+    td {
+      @apply text-center;
+    }
+  }
+
+  .slim-webkit-scroll {
+    @apply overflow-y-auto;
+
+    &::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    &::-webkit-scrollbar-track {
+      display: none;
+    }
+
+    &::-webkit-scrollbar-button {
+      display: none;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: white;
+      border-radius: 5px;
+      width: 5px !important;
+    }
   }
 }

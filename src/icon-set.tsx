@@ -1,2 +1,5 @@
 export { default as Ninja } from '@/assets/icons/ninja.svg'
 export { default as Replace } from '@/assets/icons/replace.svg'
+export { default as AddUser } from '@/assets/icons/add-user.svg'
+export { default as ArrowRight } from '@/assets/icons/arrow-right.svg'
+export { default as CloseCross } from '@/assets/icons/close-cross.svg'

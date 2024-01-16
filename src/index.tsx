@@ -10,7 +10,7 @@ function renderApp(mountPoint: HTMLDivElement): void {
   mountPoint.style.rowGap = '5px'
   mountPoint.style.columnGap = '5px'
 
-  const root = document.createElement('div')
+  const root = (<div class="col-start-1 col-end-4" />) as HTMLDivElement
   mountPoint.appendChild(root)
   render(() => <App />, root)
 }

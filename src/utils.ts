@@ -1,4 +1,13 @@
-import { type Accessor } from 'solid-js'
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  on,
+  type Accessor,
+  type Setter
+} from 'solid-js'
+import { type Character } from './store'
+import { dialog } from './App'
 
 export function setEqual<T>(a: Set<T>, b: Set<T>): boolean {
   if (a.size !== b.size) return false
@@ -29,6 +38,8 @@ export interface DialogWindow {
   topBar: HTMLDivElement
   inputArea: HTMLTextAreaElement
   sendButton: HTMLButtonElement
+  inputContent: Accessor<string>
+  setInputContent: Setter<string>
   openIDModal: () => Promise<IDModal>
   setID: (id: string) => Promise<void>
 }
@@ -39,68 +50,138 @@ interface IDModal {
   submitButton: HTMLButtonElement
 }
 
-function simulateNativeInput(el: HTMLInputElement, value: string): void {
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-    HTMLInputElement.prototype,
-    'value'
-  )!.set!
+function simulateNativeInput(
+  el: HTMLInputElement | HTMLTextAreaElement,
+  value: string
+): void {
+  const nativeInputValueSetter =
+    el instanceof HTMLInputElement
+      ? // eslint-disable-next-line @typescript-eslint/unbound-method
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!
+          .set!
+      : // eslint-disable-next-line @typescript-eslint/unbound-method
+        Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!
+          .set!
   nativeInputValueSetter.call(el, value)
   el.dispatchEvent(new Event('input', { bubbles: true }))
 }
 
+const [inputContent, setInputContent] = createSignal<string>('')
+let typping = false
+
 export function useDialogWindow(
   appRoot: Accessor<HTMLDivElement | undefined>
-): DialogWindow | null {
-  return appRoot() != null
-    ? (() => {
-        const root = appRoot()!
-        const bottomBar = root.parentElement!.parentElement! as HTMLDivElement
-        const dialog = bottomBar.previousElementSibling! as HTMLDivElement
-        const topBar = dialog.previousElementSibling! as HTMLDivElement
-        const inputArea =
-          bottomBar.querySelector<HTMLTextAreaElement>('.css-o3nsyu')!
-        const sendButton =
-          bottomBar.querySelector<HTMLButtonElement>('.css-ks2ywa')!
+): () => DialogWindow | undefined {
+  const memo = createMemo(() => {
+    const root = appRoot()
+    if (root == null || !root.isConnected) {
+      return undefined
+    }
+    const bottomBar = root.parentElement!.parentElement! as HTMLDivElement
+    const dialog = bottomBar.previousElementSibling! as HTMLDivElement
+    const topBar = dialog.previousElementSibling! as HTMLDivElement
+    const inputArea =
+      bottomBar.querySelector<HTMLTextAreaElement>('.css-o3nsyu')!
+    const sendButton = bottomBar.querySelector<HTMLButtonElement>(
+      '.css-ks2ywa:has(svg[sprite="/2495daf7694b94d633e1e9925cf85201.svg#paper-plane-usage"])'
+    )!
 
-        const openIDModal = async (): Promise<IDModal> => {
-          return await new Promise((resolve) => {
-            const userButton =
-              topBar.querySelector<HTMLButtonElement>('.css-1cdmsla')!
-            userButton.click()
-            requestAnimationFrame(() => {
-              const editIDMenuItem =
-                document.querySelector<HTMLDivElement>('.css-y6z4l5')!
-              editIDMenuItem.click()
-              requestAnimationFrame(() => {
-                const closeButton =
-                  document.querySelector<HTMLButtonElement>('.css-1ecu4hv')!
-                const idInput =
-                  document.querySelector<HTMLInputElement>('#characterName')!
-                const submitButton = document.querySelector<HTMLButtonElement>(
-                  '.css-1pv2q34[type=submit]'
-                )!
-                resolve({ closeButton, idInput, submitButton })
-              })
-            })
+    const openIDModal = async (): Promise<IDModal> => {
+      return await new Promise((resolve) => {
+        const userButton =
+          topBar.querySelector<HTMLButtonElement>('.css-1cdmsla')!
+        userButton.click()
+        requestAnimationFrame(() => {
+          const editIDMenuItem =
+            document.querySelector<HTMLDivElement>('.css-y6z4l5')!
+          editIDMenuItem.click()
+          requestAnimationFrame(() => {
+            const closeButton =
+              document.querySelector<HTMLButtonElement>('.css-1ecu4hv')!
+            const idInput =
+              document.querySelector<HTMLInputElement>('#characterName')!
+            const submitButton = document.querySelector<HTMLButtonElement>(
+              '.css-1pv2q34[type=submit]'
+            )!
+            resolve({ closeButton, idInput, submitButton })
           })
-        }
+        })
+      })
+    }
 
-        const setID = async (id: string): Promise<void> => {
-          const { idInput, submitButton } = await openIDModal()
-          simulateNativeInput(idInput, id)
-          submitButton.click()
-        }
+    const setID = async (id: string): Promise<void> => {
+      const { idInput, submitButton } = await openIDModal()
+      simulateNativeInput(idInput, id)
+      submitButton.click()
+    }
 
-        return {
-          bottomBar,
-          dialog,
-          topBar,
-          inputArea,
-          sendButton,
-          openIDModal,
-          setID
+    const sendHandler = (e: Event) => {
+      typping = true
+      setInputContent(() => '')
+      typping = false
+    }
+
+    sendButton.addEventListener('click', sendHandler)
+
+    const inputHandler = (e: Event) => {
+      typping = true
+      setInputContent((e.target as HTMLTextAreaElement).value)
+      typping = false
+    }
+
+    inputArea.addEventListener('input', inputHandler)
+
+    createEffect(
+      on(inputContent, (v) => {
+        if (!typping) {
+          simulateNativeInput(inputArea, v)
         }
-      })()
-    : null
+      })
+    )
+
+    return {
+      bottomBar,
+      dialog,
+      topBar,
+      inputArea,
+      sendButton,
+      inputContent,
+      setInputContent,
+      openIDModal,
+      setID
+    }
+  })
+  return memo
+}
+
+export function formatImportString(importString: string): Partial<Character> {
+  const namePattern = /(?<=\.st )(?:([\p{Script=Han}|\w]+?)(?:[- ]|？))?(.+)/gu
+  const nameMatch = namePattern.exec(importString)
+  if (nameMatch == null) {
+    return {}
+  }
+
+  const name = nameMatch[1]
+  const attrString = nameMatch[2]
+
+  const attrPattern = /([\p{Script=Han}|\w]+?)(\d+)/gu
+  const result: Record<string, number> = {}
+  for (
+    let match = attrPattern.exec(attrString);
+    match !== null;
+    match = attrPattern.exec(attrString)
+  ) {
+    result[match[1]] = parseInt(match[2])
+  }
+
+  return {
+    name,
+    attributes: result,
+    active: false
+  }
+}
+
+// HACK: 好丑陋的导出方法
+export async function setID(id: string): Promise<void> {
+  await dialog()!.setID(id)
 }

@@ -14,7 +14,7 @@ export default defineConfig({
         autoGrant: true
       },
       userscript: {
-        version: '0.0.1',
+        version: '0.1.0',
         name: 'Boluo Attribute Extension',
         author: 'AutumnSaury',
         description: '菠萝角色属性扩展',
@@ -26,7 +26,9 @@ export default defineConfig({
     })
   ],
   build: {
-    target: 'chrome89'
+    target: 'chrome89',
+    minify: 'esbuild',
+    cssMinify: 'esbuild'
   },
   resolve: {
     alias: {
