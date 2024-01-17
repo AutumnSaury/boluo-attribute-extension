@@ -1,5 +1,3 @@
-import { type Accessor } from 'solid-js'
-
 export interface ReplacementSuggestion {
   start: number
   end: number
@@ -7,7 +5,7 @@ export interface ReplacementSuggestion {
   replacement: string
 }
 
-const getReplacementSuggestions = (
+export const getReplacementSuggestions = (
   text: string,
   attributes: Record<string, number>
 ): ReplacementSuggestion[] => {
@@ -28,21 +26,6 @@ const getReplacementSuggestions = (
     })
   }
   return suggestions
-}
-
-export const useAttributeReplacementSuggestion = (
-  inputContent: Accessor<string> | undefined,
-  attributes: Accessor<Record<string, number> | undefined>
-): ReplacementSuggestion[] => {
-  if (inputContent == null) {
-    return []
-  }
-  const text = inputContent()
-  const attrs = attributes()
-  if (attrs === undefined) {
-    return []
-  }
-  return getReplacementSuggestions(text, attrs)
 }
 
 export const replaceAttribute = (

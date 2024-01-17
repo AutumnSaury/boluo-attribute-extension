@@ -66,7 +66,6 @@ function simulateNativeInput(
 }
 
 const [inputContent, setInputContent] = createSignal<string>('')
-let typping = false
 
 export function useDialogWindow(
   appRoot: Accessor<HTMLDivElement | undefined>
@@ -114,27 +113,13 @@ export function useDialogWindow(
       submitButton.click()
     }
 
-    const sendHandler = (e: Event) => {
-      typping = true
-      setInputContent(() => '')
-      typping = false
-    }
-
-    sendButton.addEventListener('click', sendHandler)
-
-    const inputHandler = (e: Event) => {
-      typping = true
+    inputArea.addEventListener('input', (e) => {
       setInputContent((e.target as HTMLTextAreaElement).value)
-      typping = false
-    }
-
-    inputArea.addEventListener('input', inputHandler)
+    })
 
     createEffect(
       on(inputContent, (v) => {
-        if (!typping) {
-          simulateNativeInput(inputArea, v)
-        }
+        simulateNativeInput(inputArea, v)
       })
     )
 
