@@ -2,10 +2,11 @@ import Button from '@/components/button'
 import Input from '@/components/input'
 import Modal from '@/components/modal'
 import { useCharacterStore } from '@/store'
-import { formatImportString, setID } from '@/utils'
+import { formatImportString } from '@/utils'
 import { createEffect, on, type Component, Show } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import AttributeTable from './attribute-table'
+import { useGlobalContext } from '@/contexts/global-context'
 
 interface AddCharacterModalProps {
   shown: boolean
@@ -29,6 +30,7 @@ const AddCharacterModal: Component<AddCharacterModalProps> = (props) => {
     // eslint-disable-next-line solid/reactivity
     attributes: props.initAttributes ?? {}
   })
+  const { dialog } = useGlobalContext()
 
   createEffect(
     on(
@@ -54,14 +56,16 @@ const AddCharacterModal: Component<AddCharacterModalProps> = (props) => {
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          addCharacter({
-            name: newCharacter.name,
-            attributes: newCharacter.attributes,
-            active: false
-          })
-          setActiveCharacter(newCharacter.name)
-          void setID(newCharacter.name)
-          props.onClose()
+          void (async () => {
+            addCharacter({
+              name: newCharacter.name,
+              attributes: newCharacter.attributes,
+              active: false
+            })
+            setActiveCharacter(newCharacter.name)
+            void dialog()?.setID(newCharacter.name)
+            props.onClose()
+          })()
         }}
       >
         <div class="mb-4">

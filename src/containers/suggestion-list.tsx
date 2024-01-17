@@ -1,23 +1,23 @@
 import Suggestion from '@/components/suggestion'
+import { useGlobalContext } from '@/contexts/global-context'
 import {
   replaceAttribute,
   useAttributeReplacementSuggestion
 } from '@/hooks/attr-replacement'
 import { useCharacterStore } from '@/store'
-import { type DialogWindow } from '@/utils'
-import { For, type Component, createEffect, on } from 'solid-js'
+import { For, createEffect, on, type Component } from 'solid-js'
 
 interface SuggestionListProps {
-  dialog?: DialogWindow
   autoReplacement: boolean
 }
 
 const SuggestionList: Component<SuggestionListProps> = (props) => {
   const { activeCharacter } = useCharacterStore()
+  const { dialog } = useGlobalContext()
 
   const suggestions = () =>
     useAttributeReplacementSuggestion(
-      props.dialog?.inputContent,
+      dialog()?.inputContent,
       () => activeCharacter()?.attributes ?? {}
     )
 
@@ -28,7 +28,7 @@ const SuggestionList: Component<SuggestionListProps> = (props) => {
         if (auto) {
           const suggestion = suggestions[0]
           if (suggestion != null) {
-            props.dialog?.setInputContent((prev) =>
+            dialog()?.setInputContent((prev) =>
               replaceAttribute(prev, suggestion)
             )
           }
@@ -44,9 +44,7 @@ const SuggestionList: Component<SuggestionListProps> = (props) => {
           <Suggestion
             {...item}
             onClick={() => {
-              props.dialog?.setInputContent((prev) =>
-                replaceAttribute(prev, item)
-              )
+              dialog()?.setInputContent((prev) => replaceAttribute(prev, item))
             }}
           />
         )}

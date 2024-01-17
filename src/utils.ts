@@ -7,7 +7,6 @@ import {
   type Setter
 } from 'solid-js'
 import { type Character } from './store'
-import { dialog } from './App'
 
 export function setEqual<T>(a: Set<T>, b: Set<T>): boolean {
   if (a.size !== b.size) return false
@@ -179,9 +178,4 @@ export function formatImportString(importString: string): Partial<Character> {
     attributes: result,
     active: false
   }
-}
-
-// HACK: 好丑陋的导出方法
-export async function setID(id: string): Promise<void> {
-  await dialog()!.setID(id)
 }

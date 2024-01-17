@@ -2,14 +2,16 @@ import { useCharacterStore } from '@/store'
 import { For, createSignal, type Component } from 'solid-js'
 import Button from '../components/button'
 import AddCharacterModal from './add-character-modal'
-import { setID } from '@/utils'
+import { useGlobalContext } from '@/contexts/global-context'
 
 const CharacterTable: Component = () => {
   const { characterList, setCharacterList, setActiveCharacter } =
     useCharacterStore()
   const [editShown, setEditShown] = createSignal(false)
+  const { dialog } = useGlobalContext()
+
   return (
-    <table class="w-full">
+    <table class="tab-center">
       <thead>
         <tr>
           <th>角色名</th>
@@ -29,14 +31,14 @@ const CharacterTable: Component = () => {
                 initName={item.name}
                 initAttributes={item.attributes}
               />
-              <td class="text-center">{item.name}</td>
-              <td class="text-center">{item.active ? '是' : '否'}</td>
+              <td>{item.name}</td>
+              <td>{item.active ? '是' : '否'}</td>
               <td class="flex justify-around">
                 <Button
                   variant="primary"
                   onClick={() => {
                     setActiveCharacter(item.name)
-                    void setID(item.name)
+                    void dialog()?.setID(item.name)
                   }}
                 >
                   启用
