@@ -69,7 +69,7 @@ const AddCharacterModal: Component<AddCharacterModalProps> = (props) => {
         }}
       >
         <div class="mb-4">
-          <label>角色名称</label>
+          <label class="block py-2">角色名称</label>
           <Input
             placeholder="要导入的角色名称"
             value={newCharacter.name}
@@ -79,7 +79,7 @@ const AddCharacterModal: Component<AddCharacterModalProps> = (props) => {
           />
         </div>
         <div class="mb-4">
-          <label>导入字符串</label>
+          <label class="block py-2">导入字符串</label>
           <Input
             placeholder="请将骰娘导入字符串粘贴到这里"
             value={newCharacter.importString}
